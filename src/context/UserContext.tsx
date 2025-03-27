@@ -296,6 +296,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     name,
     streak,
     points,
+    setPoints,
     rank,
     currentChallenge,
     logs,

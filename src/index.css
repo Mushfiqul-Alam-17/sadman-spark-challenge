@@ -116,8 +116,13 @@
   .shadow-neon-yellow {
     box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
   }
+  
+  .shadow-neon-green {
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+  }
 }
 
+/* Additional keyframe animations */
 @keyframes flame {
   0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.7)); }
   50% { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 1)); }
@@ -128,6 +133,21 @@
   50% { opacity: 0.85; transform: scale(0.95); }
 }
 
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 0.8; transform: scale(1.2); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
 @layer utilities {
   .animate-flame {
     animation: flame 1.5s ease-in-out infinite;
@@ -136,4 +156,39 @@
   .animate-pulse-slow {
     animation: pulse-slow 3s ease-in-out infinite;
   }
+  
+  .animate-twinkle {
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  
+  .animate-float {
+    animation: float 5s ease-in-out infinite;
+  }
+}
+
+/* Grid pattern for background */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Add glow to inputs when focused */
+input:focus, textarea:focus, select:focus {
+  @apply ring-2 ring-kidney-purple ring-opacity-50 shadow-neon-purple;
+  outline: none;
+}
+
+/* Button hover effects */
+button:hover:not([disabled]), 
+.glass-button:hover:not([disabled]) {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
+button:active:not([disabled]), 
+.glass-button:active:not([disabled]) {
+  transform: translateY(1px);
+  transition: transform 0.1s ease;
 }
