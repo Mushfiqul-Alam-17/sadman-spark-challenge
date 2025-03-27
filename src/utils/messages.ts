@@ -1,4 +1,3 @@
-
 // Motivational messages for Sadman based on his actions
 export const motivationalMessages = {
   // Messages related to medication
@@ -115,8 +114,18 @@ export const getRandomMessage = (category: keyof typeof motivationalMessages, su
     ? motivationalMessages[category][subcategory as keyof typeof motivationalMessages[typeof category]]
     : motivationalMessages[category];
   
-  const randomIndex = Math.floor(Math.random() * messages.length);
-  return messages[randomIndex];
+  // Check if messages is an array or an object
+  if (Array.isArray(messages)) {
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    return messages[randomIndex];
+  } else {
+    // If it's an object and no subcategory was provided, select a random subcategory
+    const subcategories = Object.keys(messages) as Array<keyof typeof messages>;
+    const randomSubcategory = subcategories[Math.floor(Math.random() * subcategories.length)];
+    const messagesArray = messages[randomSubcategory];
+    const randomIndex = Math.floor(Math.random() * messagesArray.length);
+    return messagesArray[randomIndex];
+  }
 };
 
 // Get streak message based on streak length
