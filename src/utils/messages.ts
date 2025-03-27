@@ -122,7 +122,7 @@ export const getRandomMessage = (category: keyof typeof motivationalMessages, su
     // If it's an object and no subcategory was provided, select a random subcategory
     const subcategories = Object.keys(messages) as Array<keyof typeof messages>;
     const randomSubcategory = subcategories[Math.floor(Math.random() * subcategories.length)];
-    const messagesArray = messages[randomSubcategory];
+    const messagesArray = messages[randomSubcategory] as string[];
     const randomIndex = Math.floor(Math.random() * messagesArray.length);
     return messagesArray[randomIndex];
   }

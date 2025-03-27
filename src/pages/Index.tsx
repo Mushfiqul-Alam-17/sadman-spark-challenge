@@ -6,8 +6,10 @@ import Dashboard from "@/components/Dashboard";
 import DailyLog from "@/components/DailyLog";
 import StatsCard from "@/components/StatsCard";
 import ChallengeCard from "@/components/ChallengeCard";
+import AIInsights from "@/components/AIInsights";
 import { challenges, getChallengeInfo } from "@/utils/challenges";
 import { Toaster } from "@/components/ui/sonner";
+import { Sparkles, Brain, LineChart, Zap } from "lucide-react";
 
 // Main page content
 const MainContent = () => {
@@ -19,21 +21,37 @@ const MainContent = () => {
   const activeProgress = currentChallenge ? calculateProgressPercentage() : 0;
   
   return (
-    <div className="min-h-screen bg-background text-foreground pt-8 pb-16 px-4 md:px-8 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/90 text-foreground pt-8 pb-16 px-4 md:px-8 max-w-6xl mx-auto">
       <header className="mb-8 animate-fade-in">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-1 glow-text">Sadman's Kidney Fight</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-1 glow-text flex items-center">
+              Sadman's Kidney Fight
+              <Zap className="h-6 w-6 ml-2 text-kidney-yellow animate-pulse" />
+            </h1>
             <p className="text-muted-foreground">Your health journey, one day at a time</p>
           </div>
         </div>
       </header>
       
       <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="animate-slide-up">
-        <TabsList className="grid grid-cols-3 mb-8 w-full max-w-md mx-auto">
-          <TabsTrigger value="dashboard" className="text-sm md:text-base">Dashboard</TabsTrigger>
-          <TabsTrigger value="log" className="text-sm md:text-base">Daily Log</TabsTrigger>
-          <TabsTrigger value="challenges" className="text-sm md:text-base">Challenges</TabsTrigger>
+        <TabsList className="grid grid-cols-4 mb-8 w-full max-w-md mx-auto bg-secondary/80 backdrop-blur-md border border-white/10">
+          <TabsTrigger value="dashboard" className="text-sm md:text-base flex items-center gap-1">
+            <LineChart className="h-4 w-4" />
+            <span className="hidden sm:inline">Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="log" className="text-sm md:text-base flex items-center gap-1">
+            <Zap className="h-4 w-4" />
+            <span className="hidden sm:inline">Daily Log</span>
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="text-sm md:text-base flex items-center gap-1">
+            <Brain className="h-4 w-4" />
+            <span className="hidden sm:inline">AI Insights</span>
+          </TabsTrigger>
+          <TabsTrigger value="challenges" className="text-sm md:text-base flex items-center gap-1">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">Challenges</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="dashboard" className="space-y-6 animate-scale-up">
@@ -47,6 +65,12 @@ const MainContent = () => {
         <TabsContent value="log" className="animate-scale-up">
           <div className="max-w-md mx-auto">
             <DailyLog />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="insights" className="animate-scale-up">
+          <div className="max-w-md mx-auto">
+            <AIInsights />
           </div>
         </TabsContent>
         

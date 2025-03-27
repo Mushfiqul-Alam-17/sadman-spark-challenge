@@ -68,7 +68,7 @@
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-xl bg-secondary/60 rounded-xl border border-white/10 shadow-glass;
+    @apply backdrop-blur-xl bg-secondary/60 rounded-xl border border-white/10 shadow-glass hover:shadow-neon transition-all duration-300;
   }
   
   .glass-button {
@@ -81,5 +81,59 @@
   
   .flame-icon {
     @apply text-kidney-yellow animate-flame;
+  }
+
+  .neon-border {
+    @apply border border-kidney-purple/50 shadow-neon-purple;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+}
+
+@layer utilities {
+  .shadow-glass {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .shadow-neon {
+    box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+  }
+
+  .shadow-neon-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  }
+
+  .shadow-neon-purple {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+  }
+
+  .shadow-neon-yellow {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
+  }
+}
+
+@keyframes flame {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.7)); }
+  50% { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 1)); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(0.95); }
+}
+
+@layer utilities {
+  .animate-flame {
+    animation: flame 1.5s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
   }
 }
