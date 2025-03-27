@@ -1,137 +1,159 @@
 
 import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useUser } from "@/context/UserContext";
-import { Gamepad, Trophy, Clock, RotateCcw } from "lucide-react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { Brain, Trophy, Timer, RotateCcw } from "lucide-react";
 
-const EMOJI_CARDS = ["💊", "🥗", "😴", "🏃", "💧", "🩸", "🧠", "💪", "🌙", "🍎"];
-
-interface Card {
+type MemoryCard = {
   id: number;
   value: string;
   flipped: boolean;
   matched: boolean;
-}
+};
 
 const MemoryGame: React.FC = () => {
-  const { points, setPoints } = useUser();
-  const [cards, setCards] = useState<Card[]>([]);
-  const [flippedCards, setFlippedCards] = useState<number[]>([]);
-  const [matchedPairs, setMatchedPairs] = useState<number>(0);
-  const [moves, setMoves] = useState<number>(0);
-  const [gameStarted, setGameStarted] = useState<boolean>(false);
-  const [gameCompleted, setGameCompleted] = useState<boolean>(false);
-  const [timer, setTimer] = useState<number>(0);
+  const { points } = useUser();
+  const [cards, setCards] = useState<MemoryCard[]>([]);
+  const [flippedCount, setFlippedCount] = useState(0);
+  const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
+  const [moves, setMoves] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [timeElapsed, setTimeElapsed] = useState(0);
   const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
 
+  // Possible emojis for memory cards
+  const emojis = ["🧠", "💊", "💧", "🍎", "🏃", "💤", "🩸", "❤️", "🥦", "🏆"];
+
+  // Initialize game
   const initializeGame = () => {
-    // Create pairs of cards
-    const shuffledEmojis = [...EMOJI_CARDS, ...EMOJI_CARDS]
+    // Create card pairs
+    const cardValues = [...emojis.slice(0, 5), ...emojis.slice(0, 5)];
+    
+    // Shuffle cards
+    const shuffledCards = cardValues
       .sort(() => Math.random() - 0.5)
-      .map((emoji, index) => ({
+      .map((value, index) => ({
         id: index,
-        value: emoji,
+        value,
         flipped: false,
         matched: false,
       }));
-
-    setCards(shuffledEmojis);
-    setFlippedCards([]);
-    setMatchedPairs(0);
-    setMoves(0);
-    setGameCompleted(false);
-    setTimer(0);
     
+    setCards(shuffledCards);
+    setFlippedCount(0);
+    setFlippedIndexes([]);
+    setMoves(0);
+    setGameOver(false);
+    setTimeElapsed(0);
+    
+    // Clear any existing timer
     if (timerInterval) {
       clearInterval(timerInterval);
-      setTimerInterval(null);
     }
   };
 
+  // Start game and timer
   const startGame = () => {
     initializeGame();
     setGameStarted(true);
     
     // Start timer
     const interval = setInterval(() => {
-      setTimer(prev => prev + 1);
+      setTimeElapsed(prev => prev + 1);
     }, 1000);
     
     setTimerInterval(interval);
   };
 
-  const handleCardClick = (cardId: number) => {
-    if (
-      flippedCards.length === 2 || // Block if two cards are already flipped
-      flippedCards.includes(cardId) || // Block if card is already flipped
-      cards[cardId].matched // Block if card is already matched
-    ) {
+  // Handle card flip
+  const handleCardClick = (index: number) => {
+    // Prevent clicking if two cards are already flipped or the clicked card is already flipped/matched
+    if (flippedCount === 2 || cards[index].flipped || cards[index].matched) {
       return;
     }
 
     // Flip the card
-    const updatedCards = [...cards];
-    updatedCards[cardId].flipped = true;
-    setCards(updatedCards);
-
-    // Add to flipped cards
-    const updatedFlippedCards = [...flippedCards, cardId];
-    setFlippedCards(updatedFlippedCards);
-
-    // If two cards are flipped, check for match
-    if (updatedFlippedCards.length === 2) {
+    const newCards = [...cards];
+    newCards[index].flipped = true;
+    setCards(newCards);
+    
+    // Track flipped cards
+    const newFlippedIndexes = [...flippedIndexes, index];
+    setFlippedIndexes(newFlippedIndexes);
+    setFlippedCount(flippedCount + 1);
+    
+    // Check for match when two cards are flipped
+    if (newFlippedIndexes.length === 2) {
       setMoves(moves + 1);
       
-      const [firstCardId, secondCardId] = updatedFlippedCards;
+      const [firstIndex, secondIndex] = newFlippedIndexes;
       
-      if (cards[firstCardId].value === cards[secondCardId].value) {
+      if (cards[firstIndex].value === cards[secondIndex].value) {
         // Match found
         setTimeout(() => {
           const matchedCards = [...cards];
-          matchedCards[firstCardId].matched = true;
-          matchedCards[secondCardId].matched = true;
+          matchedCards[firstIndex].matched = true;
+          matchedCards[secondIndex].matched = true;
           setCards(matchedCards);
-          setFlippedCards([]);
-          setMatchedPairs(matchedPairs + 1);
+          setFlippedCount(0);
+          setFlippedIndexes([]);
           
-          // Check if game is completed
-          if (matchedPairs + 1 === EMOJI_CARDS.length) {
-            completeGame();
+          // Check if all cards are matched
+          if (matchedCards.every(card => card.matched)) {
+            endGame();
           }
         }, 500);
       } else {
         // No match
         setTimeout(() => {
-          const unmatchedCards = [...cards];
-          unmatchedCards[firstCardId].flipped = false;
-          unmatchedCards[secondCardId].flipped = false;
-          setCards(unmatchedCards);
-          setFlippedCards([]);
+          const resetCards = [...cards];
+          resetCards[firstIndex].flipped = false;
+          resetCards[secondIndex].flipped = false;
+          setCards(resetCards);
+          setFlippedCount(0);
+          setFlippedIndexes([]);
         }, 1000);
       }
     }
   };
 
-  const completeGame = () => {
+  // End game
+  const endGame = () => {
+    setGameOver(true);
+    
+    // Stop timer
     if (timerInterval) {
       clearInterval(timerInterval);
       setTimerInterval(null);
     }
     
-    setGameCompleted(true);
+    // Calculate score based on moves and time
+    const basePoints = 100;
+    const movesPenalty = moves * 5;
+    const timePenalty = Math.floor(timeElapsed / 5);
+    const finalScore = Math.max(basePoints - movesPenalty - timePenalty, 10);
     
-    // Calculate points based on performance
-    // Less moves and faster time = more points
-    const timeBonus = Math.max(100 - timer, 0);
-    const moveBonus = Math.max(100 - (moves * 5), 0);
-    const earnedPoints = Math.floor((timeBonus + moveBonus) / 2);
-    
-    // Add points to user
-    setPoints(points + earnedPoints);
-    
-    toast.success(`Game completed! You earned ${earnedPoints} points!`, {
-      description: `Moves: ${moves} | Time: ${timer}s`,
+    // Show completion message
+    toast.success(`Game Complete! +${finalScore} points`, {
+      description: `You completed the game in ${moves} moves and ${timeElapsed} seconds!`,
     });
+  };
+
+  // Reset game
+  const resetGame = () => {
+    setGameStarted(false);
+    setGameOver(false);
+    initializeGame();
+    
+    // Stop timer
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      setTimerInterval(null);
+    }
   };
 
   // Cleanup timer on unmount
@@ -143,100 +165,122 @@ const MemoryGame: React.FC = () => {
     };
   }, [timerInterval]);
 
+  // Format time display
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
-    <div className="glass-card p-5 space-y-4 animate-fade-in">
-      <div className="mb-4 flex items-center gap-2">
-        <Gamepad className="text-kidney-purple h-5 w-5" />
-        <p className="text-sm font-medium uppercase text-muted-foreground">
-          Memory Game
+    <div className="glass-card p-5 relative overflow-hidden border border-kidney-blue/30 shadow-neon-blue">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-kidney-blue via-kidney-purple to-kidney-green"></div>
+      <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-kidney-yellow animate-pulse"></div>
+      
+      <div className="mb-4">
+        <p className="text-sm font-medium uppercase text-kidney-blue mb-1">
+          Brain Training
+        </p>
+        <h3 className="text-xl font-bold flex items-center gap-2">
+          <Brain className="h-5 w-5 text-kidney-purple" /> Memory Challenge
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Exercise your brain and earn bonus points
         </p>
       </div>
-
+      
       {!gameStarted ? (
-        <div className="flex flex-col items-center space-y-4 p-6">
-          <Gamepad className="h-16 w-16 text-kidney-yellow animate-pulse" />
-          <h3 className="text-xl font-bold text-center">Kidney Memory Challenge</h3>
-          <p className="text-muted-foreground text-center">
-            Match all pairs to earn bonus points! Test your memory and have fun!
-          </p>
-          <button
-            onClick={startGame}
-            className="glass-button px-6 py-2 mt-4 flex items-center gap-2"
+        <div className="flex flex-col items-center justify-center py-10">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="mb-5 text-center"
           >
-            <Gamepad className="h-4 w-4" />
-            <span>Start Game</span>
-          </button>
+            <p className="text-lg mb-2">Ready to test your memory?</p>
+            <p className="text-sm text-muted-foreground">Match all the pairs with the fewest moves!</p>
+          </motion.div>
+          
+          <Button 
+            onClick={startGame}
+            className="glass-button font-medium px-8 py-6 text-lg"
+          >
+            Start Game
+          </Button>
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-kidney-yellow" />
-              <span>{formatTime(timer)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-kidney-purple" />
+          {/* Game stats */}
+          <div className="flex justify-between mb-4">
+            <div className="flex items-center gap-2 text-sm">
+              <Trophy className="h-4 w-4 text-kidney-yellow" />
               <span>Moves: {moves}</span>
             </div>
-            <button 
-              onClick={startGame}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RotateCcw className="h-3 w-3" />
-              <span>Reset</span>
-            </button>
+            
+            <div className="flex items-center gap-2 text-sm">
+              <Timer className="h-4 w-4 text-kidney-blue" />
+              <span>Time: {formatTime(timeElapsed)}</span>
+            </div>
           </div>
-
-          <div className="grid grid-cols-4 gap-3">
-            {cards.map((card) => (
-              <div
+          
+          {/* Memory card grid */}
+          <div className="grid grid-cols-5 gap-2 mb-4">
+            {cards.map((card, index) => (
+              <motion.div
                 key={card.id}
-                onClick={() => handleCardClick(card.id)}
-                className={`aspect-square flex items-center justify-center text-3xl rounded-lg cursor-pointer transition-all duration-300 transform ${
-                  card.flipped || card.matched
-                    ? "bg-primary/20 rotate-0 scale-100"
-                    : "bg-secondary shadow-neon hover:shadow-neon-blue rotate-0 scale-100 hover:scale-105"
-                } ${
-                  card.matched ? "shadow-neon-green opacity-70" : ""
-                }`}
-                style={{
-                  perspective: "1000px",
-                  transformStyle: "preserve-3d",
-                  transition: "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                initial={{ rotateY: 0 }}
+                animate={{ 
+                  rotateY: card.flipped ? 180 : 0,
+                  scale: card.matched ? 0.95 : 1,
                 }}
+                transition={{ duration: 0.5 }}
+                whileHover={{ scale: card.flipped || card.matched ? 1 : 1.05 }}
+                onClick={() => handleCardClick(index)}
+                className={`aspect-square cursor-pointer perspective-1000 ${
+                  card.matched ? "opacity-50" : ""
+                }`}
               >
-                {(card.flipped || card.matched) && (
-                  <div 
-                    className={`transform ${card.matched ? "animate-pulse-slow" : "animate-fade-in"}`}
-                  >
-                    {card.value}
+                <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d`}>
+                  {/* Card back */}
+                  <div className={`absolute inset-0 flex items-center justify-center rounded-lg bg-gradient-to-br from-kidney-purple/80 to-kidney-blue/80 backface-hidden ${
+                    card.flipped ? "hidden" : ""
+                  }`}>
+                    <span className="text-xl">?</span>
                   </div>
-                )}
-              </div>
+                  
+                  {/* Card front */}
+                  <div className={`absolute inset-0 flex items-center justify-center rounded-lg bg-gradient-to-br from-secondary to-secondary/20 border border-white/10 backface-hidden rotate-y-180 ${
+                    card.flipped ? "" : "hidden"
+                  }`}>
+                    <span className="text-2xl">{card.value}</span>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
-
-          {gameCompleted && (
-            <div className="mt-4 text-center p-4 rounded-lg bg-primary/20 border border-primary/30 animate-scale-up">
-              <Trophy className="h-8 w-8 text-kidney-yellow mx-auto mb-2" />
-              <h3 className="text-lg font-bold">You Win!</h3>
-              <p className="text-sm text-muted-foreground">
-                Completed in {moves} moves and {formatTime(timer)}
-              </p>
-              <button
-                onClick={startGame}
-                className="glass-button px-4 py-1 mt-3 text-sm flex items-center gap-1 mx-auto"
-              >
-                <RotateCcw className="h-3 w-3" />
-                <span>Play Again</span>
-              </button>
-            </div>
+          
+          {/* Game controls */}
+          <div className="flex justify-center mt-4">
+            <Button 
+              onClick={resetGame} 
+              variant="outline" 
+              className="flex items-center gap-1"
+            >
+              <RotateCcw className="h-4 w-4" /> Reset Game
+            </Button>
+          </div>
+          
+          {/* Game over message */}
+          {gameOver && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-3 rounded-lg bg-kidney-green/20 text-kidney-green text-center"
+            >
+              <p className="font-medium">Congratulations! 🎉</p>
+              <p className="text-sm">All matches found in {moves} moves!</p>
+            </motion.div>
           )}
         </>
       )}
