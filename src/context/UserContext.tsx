@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 // Types
@@ -19,6 +20,7 @@ export interface UserContextType {
   name: string;
   streak: number;
   points: number;
+  setPoints: React.Dispatch<React.SetStateAction<number>>;
   rank: RankType;
   currentChallenge: ChallengeType;
   logs: LogEntryType[];
@@ -37,6 +39,7 @@ const defaultContext: UserContextType = {
   name: "Sadman",
   streak: 0,
   points: 0,
+  setPoints: () => {},
   rank: "Rookie",
   currentChallenge: null,
   logs: [],
@@ -154,6 +157,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     
     localStorage.setItem("sadmanUserData", JSON.stringify(userData));
+    
+    // Also check if challenge is completed based on current points
+    if (currentChallenge) {
+      const progress = calculateProgressPercentage();
+      if (progress >= 100) {
+        // Challenge completed!
+        completeChallenge(currentChallenge);
+      }
+    }
   }, [name, streak, points, rank, currentChallenge, logs, completedChallenges]);
 
   // Calculate points for an entry

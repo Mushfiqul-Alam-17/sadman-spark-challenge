@@ -7,7 +7,7 @@ import DailyLog from "@/components/DailyLog";
 import StatsCard from "@/components/StatsCard";
 import ChallengeCard from "@/components/ChallengeCard";
 import AIInsights from "@/components/AIInsights";
-import MemoryGame from "@/components/MemoryGame";
+import GameHub from "@/components/GameHub";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { challenges, getChallengeInfo } from "@/utils/challenges";
 import { Toaster } from "@/components/ui/sonner";
@@ -121,9 +121,7 @@ const MainContent = () => {
         </TabsContent>
         
         <TabsContent value="game" className="animate-scale-up">
-          <div className="max-w-xl mx-auto">
-            <MemoryGame />
-          </div>
+          <GameHub />
         </TabsContent>
         
         <TabsContent value="challenges" className="animate-scale-up">

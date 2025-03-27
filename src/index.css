@@ -5,35 +5,31 @@
 
 @layer base {
   :root {
-    --background: 240 10% 7%;
-    --foreground: 210 40% 98%;
-
-    --card: 240 10% 10%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 240 10% 10%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 248 95% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 240 5% 15%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 240 5% 20%;
-    --muted-foreground: 215 20% 80%;
-
-    --accent: 340 90% 60%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 240 5% 18%;
-    --input: 240 5% 18%;
-    --ring: 340 90% 60%;
-
-    --radius: 0.8rem;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 346 80% 58%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 346 80% 58%;
+    --kidney-red: hsl(346, 80%, 58%);
+    --kidney-blue: hsl(210, 100%, 63%);
+    --kidney-green: hsl(142, 70%, 49%);
+    --kidney-yellow: hsl(42, 100%, 64%);
+    --kidney-purple: hsl(273, 80%, 66%);
+    --radius: 0.5rem;
   }
 }
 
@@ -41,154 +37,101 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground overflow-x-hidden;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-secondary/50 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-primary rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary/80;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-xl bg-secondary/60 rounded-xl border border-white/10 shadow-glass hover:shadow-neon transition-all duration-300;
+    @apply bg-black/30 backdrop-blur-lg border border-white/10 rounded-xl shadow-md overflow-hidden relative;
   }
   
   .glass-button {
-    @apply backdrop-blur-xl bg-primary/60 rounded-lg border border-white/20 shadow-neon transition-all hover:shadow-neon-blue hover:bg-primary/80;
+    @apply bg-black/20 hover:bg-black/30 backdrop-blur-sm shadow-md border border-white/10;
   }
   
-  .glow-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-kidney-blue to-kidney-purple drop-shadow-sm;
-  }
-  
-  .flame-icon {
-    @apply text-kidney-yellow animate-flame;
-  }
-
-  .neon-border {
-    @apply border border-kidney-purple/50 shadow-neon-purple;
-  }
-
-  .animation-delay-200 {
-    animation-delay: 0.2s;
-  }
-
-  .animation-delay-400 {
-    animation-delay: 0.4s;
-  }
-}
-
-@layer utilities {
-  .shadow-glass {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  .glass-input {
+    @apply bg-black/20 border-white/10 focus:border-white/20 focus:ring-white/20;
   }
 
   .shadow-neon {
-    box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+    @apply shadow-[0_0_15px_0_rgba(255,255,255,0.1)];
   }
-
+  
   .shadow-neon-blue {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-  }
-
-  .shadow-neon-purple {
-    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
-  }
-
-  .shadow-neon-yellow {
-    box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
+    @apply shadow-[0_0_15px_0_rgba(51,156,255,0.3)];
   }
   
   .shadow-neon-green {
-    box-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+    @apply shadow-[0_0_15px_0_rgba(72,187,120,0.3)];
   }
-}
-
-/* Additional keyframe animations */
-@keyframes flame {
-  0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.7)); }
-  50% { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 1)); }
-}
-
-@keyframes pulse-slow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(0.95); }
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 0.8; transform: scale(1.2); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(0.9); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.8; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  
+  .shadow-neon-purple {
+    @apply shadow-[0_0_15px_0_rgba(128,90,213,0.3)];
+  }
+  
+  .glow-text {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
 }
 
 @layer utilities {
   .animate-flame {
-    animation: flame 1.5s ease-in-out infinite;
+    animation: flame 2s ease-in-out infinite;
   }
-
+  
   .animate-pulse-slow {
-    animation: pulse-slow 3s ease-in-out infinite;
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
-  .animate-twinkle {
-    animation: twinkle 3s ease-in-out infinite;
+  .animate-scale-up {
+    animation: scaleUp 0.5s ease-out forwards;
   }
   
-  .animate-float {
-    animation: float 5s ease-in-out infinite;
+  @keyframes flame {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: translateY(-2px) scale(1.1);
+      opacity: 0.8;
+    }
   }
-}
-
-/* Grid pattern for background */
-.bg-grid-pattern {
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-/* Add glow to inputs when focused */
-input:focus, textarea:focus, select:focus {
-  @apply ring-2 ring-kidney-purple ring-opacity-50 shadow-neon-purple;
-  outline: none;
-}
-
-/* Button hover effects */
-button:hover:not([disabled]), 
-.glass-button:hover:not([disabled]) {
-  transform: translateY(-2px);
-  transition: transform 0.3s ease;
-}
-
-button:active:not([disabled]), 
-.glass-button:active:not([disabled]) {
-  transform: translateY(1px);
-  transition: transform 0.1s ease;
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  
+  @keyframes scaleUp {
+    0% {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
 }
