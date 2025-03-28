@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MemoryGame from "./MemoryGame";
 import SimonGame from "./SimonGame";
 import WordGame from "./WordGame";
-import { Memory, Music, BookOpenCheck } from "lucide-react";
+import { Brain, Music, BookOpenCheck } from "lucide-react";
 
 const GameHub: React.FC = () => {
   const [activeGame, setActiveGame] = useState<string>("memory");
@@ -26,7 +26,7 @@ const GameHub: React.FC = () => {
             value="memory" 
             className="text-sm flex items-center gap-1 relative overflow-hidden group"
           >
-            <Memory className="h-4 w-4" />
+            <Brain className="h-4 w-4" />
             <span className="hidden sm:inline">Memory</span>
             <div className="absolute inset-0 bg-primary/20 -translate-x-full group-hover:translate-x-0 group-data-[state=active]:translate-x-0 transition-transform duration-300 -z-10"></div>
           </TabsTrigger>
