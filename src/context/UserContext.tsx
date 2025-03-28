@@ -1,5 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 // Types
 export type RankType = "Rookie" | "Killer" | "King";
@@ -84,6 +86,132 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [completedChallenges, setCompletedChallenges] = useState<ChallengeType[]>(
     initialState.completedChallenges || []
   );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Fetch initial data from Supabase
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Check if we have user in Supabase
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('name', name)
+          .single();
+          
+        if (userError && userError.code !== 'PGRST116') {
+          console.error("Error fetching user:", userError);
+          toast.error("Error fetching user data");
+          setIsLoading(false);
+          return;
+        }
+        
+        // If user doesn't exist, create a new one
+        if (!userData) {
+          const { error: createError } = await supabase
+            .from('users')
+            .insert([
+              { 
+                name,
+                streak,
+                points,
+                rank,
+                current_challenge: currentChallenge,
+                completed_challenges: completedChallenges
+              }
+            ]);
+            
+          if (createError) {
+            console.error("Error creating user:", createError);
+            toast.error("Error creating user");
+          } else {
+            console.log("New user created in Supabase");
+          }
+        } else {
+          // Update local state with Supabase data
+          setStreak(userData.streak || streak);
+          setPoints(userData.points || points);
+          setRank(userData.rank || rank);
+          setCurrentChallenge(userData.current_challenge || currentChallenge);
+          setCompletedChallenges(userData.completed_challenges || completedChallenges);
+        }
+        
+        // Fetch logs
+        const { data: logsData, error: logsError } = await supabase
+          .from('logs')
+          .select('*')
+          .eq('user_name', name)
+          .order('date', { ascending: false });
+          
+        if (logsError) {
+          console.error("Error fetching logs:", logsError);
+          toast.error("Error fetching logs");
+        } else if (logsData && logsData.length > 0) {
+          // Transform logs to match our format
+          const transformedLogs: LogEntryType[] = logsData.map((log: any) => ({
+            date: log.date,
+            meds: log.meds,
+            junk: log.junk,
+            sleep: log.sleep,
+            midnightSleep: log.midnight_sleep,
+            move: log.move,
+            bp: log.bp ? { systolic: log.bp.systolic, diastolic: log.bp.diastolic } : undefined,
+            points: log.points
+          }));
+          
+          setLogs(transformedLogs);
+          
+          // Set today's log if it exists
+          const today = getTodayFormatted();
+          const todayLogFromDB = transformedLogs.find(log => log.date === today);
+          if (todayLogFromDB) {
+            setTodayLog(todayLogFromDB);
+          }
+        }
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error in fetchUserData:", error);
+        toast.error("Error connecting to backend");
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [name]);
+
+  // Sync data to Supabase when it changes
+  useEffect(() => {
+    const syncUserData = async () => {
+      if (isLoading) return;
+      
+      try {
+        // Update user data
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            streak,
+            points,
+            rank,
+            current_challenge: currentChallenge,
+            completed_challenges: completedChallenges,
+            updated_at: new Date().toISOString()
+          })
+          .eq('name', name);
+          
+        if (updateError) {
+          console.error("Error updating user:", updateError);
+          // Don't show toast on every update to avoid spam
+        }
+      } catch (error) {
+        console.error("Error in syncUserData:", error);
+      }
+    };
+    
+    syncUserData();
+  }, [streak, points, rank, currentChallenge, completedChallenges, isLoading, name]);
 
   // Calculate rank based on points and challenges
   useEffect(() => {
@@ -212,7 +340,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Log daily entry
-  const logDaily = (entry: Omit<LogEntryType, "date" | "points">) => {
+  const logDaily = async (entry: Omit<LogEntryType, "date" | "points">) => {
     const today = getTodayFormatted();
     const pointsEarned = calculateTodayPoints(entry);
     
@@ -226,6 +354,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check if today already has a log
     const todayLogIndex = logs.findIndex(log => log.date === today);
     
+    // Update local state
     if (todayLogIndex >= 0) {
       // Update existing log
       const updatedLogs = [...logs];
@@ -241,25 +370,92 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Update total points
     setPoints(prevPoints => prevPoints + pointsEarned);
+    
+    // Save to Supabase
+    try {
+      // Format for Supabase
+      const logEntry = {
+        user_name: name,
+        date: today,
+        meds: entry.meds,
+        junk: entry.junk,
+        sleep: entry.sleep,
+        midnight_sleep: entry.midnightSleep,
+        move: entry.move,
+        bp: entry.bp,
+        points: pointsEarned
+      };
+      
+      // Upsert log entry
+      const { error } = await supabase
+        .from('logs')
+        .upsert([logEntry], { onConflict: 'user_name,date' });
+        
+      if (error) {
+        console.error("Error saving log:", error);
+        toast.error("Failed to save daily log to server");
+      } else {
+        toast.success("Daily log saved to server");
+      }
+    } catch (error) {
+      console.error("Error in logDaily:", error);
+      toast.error("Error connecting to server");
+    }
   };
 
   // Start a challenge
-  const startChallenge = (challenge: ChallengeType) => {
+  const startChallenge = async (challenge: ChallengeType) => {
     if (!challenge) return;
     
     // Only start if not already in a challenge
     if (!currentChallenge) {
       setCurrentChallenge(challenge);
+      
+      // Update in Supabase
+      try {
+        const { error } = await supabase
+          .from('users')
+          .update({ current_challenge: challenge })
+          .eq('name', name);
+          
+        if (error) {
+          console.error("Error starting challenge:", error);
+          toast.error("Failed to start challenge on server");
+        }
+      } catch (error) {
+        console.error("Error in startChallenge:", error);
+      }
     }
   };
 
   // Complete a challenge
-  const completeChallenge = (challenge: ChallengeType) => {
+  const completeChallenge = async (challenge: ChallengeType) => {
     if (!challenge) return;
     
     // Add to completed challenges if not already there
     if (!completedChallenges.includes(challenge)) {
-      setCompletedChallenges([...completedChallenges, challenge]);
+      const updatedChallenges = [...completedChallenges, challenge];
+      setCompletedChallenges(updatedChallenges);
+      
+      // Update in Supabase
+      try {
+        const { error } = await supabase
+          .from('users')
+          .update({ 
+            completed_challenges: updatedChallenges,
+            current_challenge: null 
+          })
+          .eq('name', name);
+          
+        if (error) {
+          console.error("Error completing challenge:", error);
+          toast.error("Failed to complete challenge on server");
+        } else {
+          toast.success(`Challenge ${challenge} completed!`);
+        }
+      } catch (error) {
+        console.error("Error in completeChallenge:", error);
+      }
     }
     
     // Reset current challenge
@@ -321,7 +517,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     calculateProgressPercentage,
   };
 
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={value}>
+      {isLoading ? (
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-kidney-blue"></div>
+        </div>
+      ) : (
+        children
+      )}
+    </UserContext.Provider>
+  );
 };
 
 // Hook to use the context

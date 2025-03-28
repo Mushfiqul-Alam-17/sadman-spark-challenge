@@ -4,7 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MemoryGame from "./MemoryGame";
 import SimonGame from "./SimonGame";
 import WordGame from "./WordGame";
-import { Brain, Music, BookOpenCheck } from "lucide-react";
+import SpaceShooterGame from "./SpaceShooterGame";
+import FighterGame from "./FighterGame";
+import { Brain, Music, BookOpenCheck, Rocket, Sword } from "lucide-react";
 
 const GameHub: React.FC = () => {
   const [activeGame, setActiveGame] = useState<string>("memory");
@@ -21,7 +23,7 @@ const GameHub: React.FC = () => {
         onValueChange={setActiveGame}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-3 mb-6 w-full max-w-md mx-auto bg-secondary/80 backdrop-blur-md border border-white/10 shadow-neon overflow-hidden">
+        <TabsList className="grid grid-cols-5 mb-6 w-full max-w-md mx-auto bg-secondary/80 backdrop-blur-md border border-white/10 shadow-neon overflow-hidden">
           <TabsTrigger 
             value="memory" 
             className="text-sm flex items-center gap-1 relative overflow-hidden group"
@@ -48,6 +50,24 @@ const GameHub: React.FC = () => {
             <span className="hidden sm:inline">Word</span>
             <div className="absolute inset-0 bg-primary/20 -translate-x-full group-hover:translate-x-0 group-data-[state=active]:translate-x-0 transition-transform duration-300 -z-10"></div>
           </TabsTrigger>
+          
+          <TabsTrigger 
+            value="space" 
+            className="text-sm flex items-center gap-1 relative overflow-hidden group"
+          >
+            <Rocket className="h-4 w-4" />
+            <span className="hidden sm:inline">Space</span>
+            <div className="absolute inset-0 bg-primary/20 -translate-x-full group-hover:translate-x-0 group-data-[state=active]:translate-x-0 transition-transform duration-300 -z-10"></div>
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            value="fighter" 
+            className="text-sm flex items-center gap-1 relative overflow-hidden group"
+          >
+            <Sword className="h-4 w-4" />
+            <span className="hidden sm:inline">Fighter</span>
+            <div className="absolute inset-0 bg-primary/20 -translate-x-full group-hover:translate-x-0 group-data-[state=active]:translate-x-0 transition-transform duration-300 -z-10"></div>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="memory" className="animate-scale-up">
@@ -60,6 +80,14 @@ const GameHub: React.FC = () => {
         
         <TabsContent value="word" className="animate-scale-up">
           <WordGame />
+        </TabsContent>
+        
+        <TabsContent value="space" className="animate-scale-up">
+          <SpaceShooterGame />
+        </TabsContent>
+        
+        <TabsContent value="fighter" className="animate-scale-up">
+          <FighterGame />
         </TabsContent>
       </Tabs>
     </div>
