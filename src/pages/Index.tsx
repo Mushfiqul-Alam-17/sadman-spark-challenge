@@ -11,7 +11,9 @@ import GameHub from "@/components/GameHub";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { challenges, getChallengeInfo } from "@/utils/challenges";
 import { Toaster } from "@/components/ui/sonner";
-import { Sparkles, Brain, LineChart, Zap, Gamepad } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Sparkles, Brain, LineChart, Zap, Gamepad, ExternalLink } from "lucide-react";
 
 // Main page content
 const MainContent = () => {
@@ -43,6 +45,15 @@ const MainContent = () => {
               <Zap className="h-6 w-6 ml-2 text-kidney-yellow animate-flame" />
             </h1>
             <p className="text-muted-foreground">Your health journey, one day at a time</p>
+          </div>
+          <div className="mt-2 md:mt-0">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/games" className="flex items-center gap-1">
+                <Gamepad className="h-4 w-4" />
+                <span>Games Portal</span>
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </Link>
+            </Button>
           </div>
         </div>
       </header>

@@ -50,3 +50,103 @@ export const getGameScores = async (userId: string, gameName?: string) => {
   }
   return data;
 };
+
+// Create a new user in the database
+export const createUser = async (userData: {
+  name: string;
+  streak?: number;
+  points?: number;
+  rank?: string;
+  current_challenge?: string;
+  completed_challenges?: string[];
+}) => {
+  const { data, error } = await supabase
+    .from('users')
+    .insert([userData])
+    .select();
+    
+  if (error) {
+    console.error('Error creating user:', error);
+    return null;
+  }
+  return data?.[0];
+};
+
+// Get user data from the database
+export const getUser = async (name: string) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('name', name)
+    .single();
+    
+  if (error) {
+    console.error('Error getting user:', error);
+    return null;
+  }
+  return data;
+};
+
+// Update user data in the database
+export const updateUser = async (name: string, userData: any) => {
+  const { data, error } = await supabase
+    .from('users')
+    .update(userData)
+    .eq('name', name)
+    .select();
+    
+  if (error) {
+    console.error('Error updating user:', error);
+    return false;
+  }
+  return true;
+};
+
+// Log daily activity
+export const saveDailyLog = async (
+  userId: string,
+  logData: {
+    water_intake?: number;
+    medication_taken?: boolean;
+    sleep_hours?: number;
+    exercise_minutes?: number;
+    mood?: string;
+    notes?: string;
+    date?: string;
+  }
+) => {
+  // Ensure we have a date
+  const date = logData.date || new Date().toISOString().split('T')[0];
+  
+  const { data, error } = await supabase
+    .from('daily_logs')
+    .upsert([
+      { 
+        user_id: userId,
+        date,
+        ...logData
+      }
+    ], { onConflict: 'user_id,date' });
+    
+  if (error) {
+    console.error('Error saving daily log:', error);
+    return false;
+  }
+  return true;
+};
+
+// Get daily logs for a user
+export const getDailyLogs = async (userId: string, limit = 7) => {
+  const { data, error } = await supabase
+    .from('daily_logs')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date', { ascending: false })
+    .limit(limit);
+    
+  if (error) {
+    console.error('Error getting daily logs:', error);
+    return [];
+  }
+  return data;
+};
